@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BSK TOP UP</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#070c18;color:white}
+header{padding:20px;text-align:center;background:#101b31;border-bottom:2px solid #00d9ff}
+header h1{margin:0;color:#00d9ff}
+.container{max-width:600px;margin:auto;padding:15px}
+.card{background:#14233a;padding:18px;margin:15px 0;border-radius:15px}
+h2{color:#00d9ff}
+.packages{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.package{background:#0c1729;color:white;border:1px solid #34506d;padding:15px;border-radius:10px;font-weight:bold}
+.package.active{border:2px solid #00d9ff}
+.price{color:#ffce4b}
+input,select{width:100%;padding:13px;margin:8px 0 15px;background:#091426;color:white;border:1px solid #405672;border-radius:8px}
+button{cursor:pointer}
+.submit{width:100%;padding:14px;background:#00d9ff;border:0;border-radius:10px;font-weight:bold;font-size:16px}
+.adminBtn{background:#ffca55;border:0;padding:10px 15px;border-radius:8px;font-weight:bold}
+.hidden{display:none}
+.order{background:#091426;padding:14px;margin:10px 0;border-radius:10px;border:1px solid #263c58}
+.accept{background:#20c77a;border:0;padding:9px;border-radius:6px}
+.complete{background:#00d9ff;border:0;padding:9px;border-radius:6px}
+.cancel{background:#ff5555;border:0;padding:9px;border-radius:6px;color:white}
+.small{color:#9fb0c7;font-size:12px}
+.bkash{background:#3b1730;padding:12px;border-radius:8px;color:#ffb6d5}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>💎 BSK TOP UP</h1>
+<p>FREE FIRE DIAMOND STORE</p>
+<button class="adminBtn" onclick="openAdmin()">ADMIN PANEL</button>
+</header>
+
+<div class="container">
+
+<div id="shop">
+
+<div class="card">
+<h2>💎 Diamond Package</h2>
+<div class="packages">
+
+<button class="package active" onclick="selectPack('25 Diamonds',25,this)">
+25 💎 <p class="price">৳25</p>
+</button>
+
+<button class="package" onclick="selectPack('50 Diamonds',45,this)">
+50 💎 <p class="price">৳45</p>
+</button>
+
+<button class="package" onclick="selectPack('115 Diamonds',90,this)">
+115 💎 <p class="price">৳90</p>
+</button>
+
+<button class="package" onclick="selectPack('240 Diamonds',180,this)">
+240 💎 <p class="price">৳180</p>
+</button>
+
+<button class="package" onclick="selectPack('610 Diamonds',440,this)">
+610 💎 <p class="price">৳440</p>
+</button>
+
+<button class="package" onclick="selectPack('1240 Diamonds',850,this)">
+1240 💎 <p class="price">৳850</p>
+</button>
+
+</div>
+<p class="small">দামগুলো আপাতত ডেমো মূল্য।</p>
+</div>
+
+<div class="card">
+<h2>💳 bKash Payment</h2>
+<div class="bkash">
+<p>Payment Method: bKash Personal</p>
+<p>Send Money Number:</p>
+<h2 style="color:white">01982434153</h2>
+<p>উপরের নম্বরে Send Money করে Transaction ID দিন।</p>
+</div>
+</div>
+
+<div class="card">
+<h2>🎮 Order Information</h2>
+
+<form onsubmit="placeOrder(event)">
+
+<label>Player UID</label>
+<input id="uid" type="text" inputmode="numeric"
+placeholder="Free Fire Player UID" required>
+
+<label>Player Name</label>
+<input id="name" type="text" placeholder="আপনার নাম">
+
+<label>Payment Method</label>
+<select id="payment">
+<option>bKash Personal</option>
+</select>
+
+<label>Transaction ID</label>
+<input id="trx" type="text" placeholder="আপনার TrxID" required>
+
+<p>Package: <b id="packName">25 Diamonds</b></p>
+<p>Price: <b id="packPrice">৳25</b></p>
+
+<button class="submit">PLACE ORDER</button>
+</form>
+</div>
+</div>
+
+<div class="card" id="tracking">
+<h2>🔎 Order Tracking</h2>
+<label>আপনার Order ID লিখুন</label>
+<input id="trackID" placeholder="যেমন BSK123456">
+<button class="submit" onclick="trackOrder()">CHECK ORDER</button>
+<div id="trackResult"></div>
+</div>
+
+<div id="admin" class="hidden">
+<div class="card">
+<h2>🔐 Admin Login</h2>
+<input id="adminPassword" type="password" placeholder="Admin Password">
+<button class="submit" onclick="loginAdmin()">LOGIN</button>
+<p id="loginMessage"></p>
+</div>
+
+<div id="dashboard" class="hidden">
+<div class="card">
+<h2>📊 Dashboard</h2>
+<p>Total Orders: <b id="totalOrders">0</b></p>
+<button class="adminBtn" onclick="showOrders()">Refresh Orders</button>
+</div>
+
+<div class="card">
+<h2>📋 Orders</h2>
+<div id="orders"></div>
+</div>
+</div>
+
+<button class="adminBtn" onclick="goShop()">BACK TO SHOP</button>
+</div>
+
+</div>
+
+<script>
+let selectedPackage="25 Diamonds";
+let selectedPrice=25;
+
+function selectPack(name,price,button){
+selectedPackage=name;
+selectedPrice=price;
+document.getElementById("packName").innerText=name;
+document.getElementById("packPrice").innerText="৳"+price;
+document.querySelectorAll(".package").forEach(x=>x.classList.remove("active"));
+button.classList.add("active");
+}
+
+function getOrders(){
+return JSON.parse(localStorage.getItem("BSK_ORDERS")||"[]");
+}
+
+function saveOrders(orders){
+localStorage.setItem("BSK_ORDERS",JSON.stringify(orders));
+}
+
+function placeOrder(event){
+event.preventDefault();
+
+let uid=document.getElementById("uid").value.trim();
+let name=document.getElementById("name").value.trim();
+let payment=document.getElementById("payment").value;
+let trx=document.getElementById("trx").value.trim();
+
+if(!/^[0-9]{5,20}$/.test(uid)){
+alert("সঠিক Player UID দিন");
+return;
+}
+
+let orders=getOrders();
+
+let order={
+id:"BSK"+Date.now(),
+uid:uid,
+name:name,
+payment:payment,
+trx:trx,
+package:selectedPackage,
+price:selectedPrice,
+status:"Pending",
+date:new Date().toLocaleString()
+};
+
+orders.push(order);
+saveOrders(orders);
+
+alert("Order সফল হয়েছে!\n\nআপনার Order ID: "+order.id);
+
+document.getElementById("uid").value="";
+document.getElementById("name").value="";
+document.getElementById("trx").value="";
+}
+
+function trackOrder(){
+let id=document.getElementById("trackID").value.trim();
+let order=getOrders().find(o=>o.id===id);
+let result=document.getElementById("trackResult");
+
+result.innerHTML="";
+
+if(!order){
+result.innerText="Order পাওয়া যায়নি!";
+return;
+}
+
+let lines=[
+"💎 Package: "+order.package,
+"🎮 Player UID: "+order.uid,
+"📌 Status: "+order.status
+];
+
+lines.forEach(line=>{
+let p=document.createElement("p");
+p.innerText=line;
+result.appendChild(p);
+});
+}
+
+function openAdmin(){
+document.getElementById("shop").classList.add("hidden");
+document.getElementById("tracking").classList.add("hidden");
+document.getElementById("admin").classList.remove("hidden");
+}
+
+function goShop(){
+document.getElementById("admin").classList.add("hidden");
+document.getElementById("shop").classList.remove("hidden");
+document.getElementById("tracking").classList.remove("hidden");
+}
+
+function loginAdmin(){
+let password=document.getElementById("adminPassword").value;
+
+if(password==="BSK12345"){
+document.getElementById("loginMessage").innerText="Login সফল হয়েছে";
+document.getElementById("dashboard").classList.remove("hidden");
+showOrders();
+}else{
+document.getElementById("loginMessage").innerText="Wrong Password!";
+}
+}
+
+function showOrders(){
+let orders=getOrders();
+document.getElementById("totalOrders").innerText=orders.length;
+
+let area=document.getElementById("orders");
+area.innerHTML="";
+
+if(orders.length===0){
+area.innerText="এখনো কোনো Order নেই।";
+return;
+}
+
+orders.forEach((order,index)=>{
+let div=document.createElement("div");
+div.className="order";
+
+let info=document.createElement("div");
+info.innerText=
+"Order ID: "+order.id+
+"\n💎 "+order.package+
+"\n🎮 UID: "+order.uid+
+"\n👤 Name: "+(order.name||"N/A")+
+"\n💳 Payment: "+order.payment+
+"\nTrxID: "+order.trx+
+"\n💰 Price: ৳"+order.price+
+"\n📌 Status: "+order.status+
+"\nDate: "+order.date;
+
+div.appendChild(info);
+
+[
+["Accept","Accepted","accept"],
+["Complete","Completed","complete"],
+["Cancel","Cancelled","cancel"]
+].forEach(item=>{
+let btn=document.createElement("button");
+btn.innerText=item[0];
+btn.className=item[2];
+btn.style.margin="5px";
+btn.onclick=()=>changeStatus(index,item[1]);
+div.appendChild(btn);
+});
+
+area.appendChild(div);
+});
+}
+
+function changeStatus(index,status){
+let orders=getOrders();
+orders[index].status=status;
+saveOrders(orders);
+showOrders();
+}
+</script>
+
+</body>
+</html>
